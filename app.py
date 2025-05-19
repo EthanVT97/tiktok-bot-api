@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from tiktok_bot_worker import start_follow_bot
 import os
 from dotenv import load_dotenv
+import threading
 
 # Load environment variables
 load_dotenv()
@@ -24,9 +25,10 @@ def run_bot():
         if not session_cookie or not user_id:
             return jsonify({"error": "Missing required fields"}), 400
 
-        start_follow_bot(session_cookie, user_id, hashtag)
+        # Start bot in background thread to prevent blocking
+        threading.Thread(target=start_follow_bot, args=(session_cookie, user_id, hashtag)).start()
 
-        return jsonify({"status": "Bot executed successfully"}), 200
+        return jsonify({"status": "Bot started in background"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
